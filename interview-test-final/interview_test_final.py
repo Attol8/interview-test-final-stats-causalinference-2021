@@ -1,6 +1,7 @@
 import logging
 import json
 from collections import namedtuple
+from util.DataLoaders import FileDataLoader
 import os
 
 def sort_file_paths(project_name: str):
@@ -9,7 +10,7 @@ def sort_file_paths(project_name: str):
     # trim off the bits we know about (i.e. from the root dir of this project)
     rundir = runpath[:runpath.find(project_name) + len(project_name) + 1]
     # change directory so we can use relative filepaths
-    os.chdir(rundir + project_name)
+    os.chdir(rundir + 'interview-test-final')
 
 def load_config():
     run_configuration_file = '../resources/interview-test-final.json'
@@ -25,13 +26,14 @@ if __name__ == '__main__':
     logging.info('Starting classification program')
 
     # Actions: get into working directory, load project config, create dated directories
-    sort_file_paths(project_name='interview-test-final')
+    sort_file_paths(project_name='interview-test-final-stats-causalinference-2021')
     run_configuration = load_config()
 
 
     # TODO: Load the data by instantiating the FileDataLoader, handle file doesn't exist.
-    data_loader = None  # Candidate , instantiate your class here
-
+    data_loader = FileDataLoader('../data/dataset_experimentation.csv')  # Candidate , instantiate your class here
+    df = data_loader.load_data()
+    print(df.shape)
     # TODO: Do the rest of your work here, or in other classes that are called here.
     model = None  # Candidate, instantiate your class here
 
