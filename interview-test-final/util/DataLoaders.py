@@ -34,7 +34,6 @@ class FileDataLoader(AbstractDataLoader):
                 logging.info('Found file: ' + self.filename)
         except FileNotFoundError:
             raise
-        
 
         # TODO: Load data from file
         logging.info('Loading data using pandas')
