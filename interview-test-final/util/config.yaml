@@ -1,0 +1,6 @@
+---
+categorical_features : ['age', 'workclass', 'marital-status', 'occupation', 'race', 'sex']
+numerical_features : ['education_rank', 'age', 'salary', 'mins_beerdrinking_year', 'mins_exercising_year', 'works_hours','tea_per_year','coffee_per_year', 'test', 'spent_17', 'spent_18']
+ordinal_features : []
+drop_features: ['user_id']
+target_feature : ['great_customer_class']
