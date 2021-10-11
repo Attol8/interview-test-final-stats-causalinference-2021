@@ -3,11 +3,16 @@ from abc import ABC, abstractmethod
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_validate
-from sklearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, OrdinalEncoder
 import numpy as np
 import yaml
+import pandas as pd
+from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.combine import SMOTETomek
+
 class AbstractModel(ABC):
 
     def __init__(self):
@@ -47,11 +52,16 @@ class Model(AbstractModel):
 
                 categorical_features = config_dict['categorical_features']
                 numerical_features = config_dict['numerical_features']
-                ordinal_features = config_dict['ordinal_features']
             except yaml.YAMLError as exc:
                 print(exc)
 
-        #TODO: add numerical transformers
+        
+        #balance class
+           
+        over_SMOTE = SMOTE(random_state = 11)
+        over_SMOTETomek = SMOTETomek(random_state=11)
+        under = RandomUnderSampler(sampling_strategy=0.5)
+
         data_pipeline = ColumnTransformer([
             ('numerical', StandardScaler(), numerical_features),
             ('categorical', OneHotEncoder(handle_unknown='ignore'), categorical_features),
@@ -59,16 +69,16 @@ class Model(AbstractModel):
         ])
 
         pipeline = Pipeline([
-            ('data_pipeline', data_pipeline), #Step1 - clean and transform data
-            ('clf', self.model) #step2 - classifier
+            ('data_pipeline', data_pipeline),
+            ('over', over_SMOTETomek),
+            #('under', under), #Step2 - clean and transform data
+            ('clf', self.model) #step3 - classifier
         ])
         return pipeline
 
     def get_param_grid(self):
         if self.model_name == 'LogReg':
-            param_grid = {
-                'clf__C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
-            }
+            param_grid = {"C":np.logspace(-3,3,7), "penalty":["l1","l2"]}
         
         if self.model_name == 'RF':
             param_grid = { 
@@ -78,7 +88,25 @@ class Model(AbstractModel):
         
         return param_grid
 
-
+def report_to_df(report):
+    split_string = [x.split(' ') for x in report.split('\n')]
+    column_names = ['']+[x for x in split_string[0] if x!='']
+    values = []
+    for table_row in split_string[1:-1]:
+        table_row = [value for value in table_row if value!='']
+        if table_row!=[]:
+            values.append(table_row)
+    for i in values:
+        for j in range(len(i)):
+            if i[1] == 'avg':
+                i[0:2] = [' '.join(i[0:2])]
+            if len(i) == 3:
+                i.insert(1,np.nan)
+                i.insert(2, np.nan)
+            else:
+                pass
+    report_to_df = pd.DataFrame(data=values, columns=column_names)
+    return report_to_df
 
 
         

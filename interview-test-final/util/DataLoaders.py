@@ -27,7 +27,7 @@ class FileDataLoader(AbstractDataLoader):
         self.filename = filename
 
     # Load data from file and return data
-    def load_data(self):
+    def load_data(self, impute_nas = None, upsample_df = None):
         # TODO: Check file exists
         try: 
             with open(self.filename) as f:
@@ -40,5 +40,14 @@ class FileDataLoader(AbstractDataLoader):
         df = pd.read_csv(self.filename)
 
         # TODO: Return your data object here
+
+        if impute_nas is not None:
+            features_to_impute = ['salary', 'mins_beerdrinking_year', 'mins_exercising_year', 'tea_per_year', 'coffee_per_year']
+            for feature in features_to_impute:
+                df[feature] = df[feature].interpolate(method='polynomial', order=2)
+                
+        if upsample_df is not None:
+            pass
+
         return df
 

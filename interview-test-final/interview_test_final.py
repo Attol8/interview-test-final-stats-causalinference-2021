@@ -2,7 +2,7 @@ import logging
 import json
 from collections import namedtuple
 from util.DataLoaders import FileDataLoader
-from util.Predictors import Model
+from util.Predictors import Model, report_to_df
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 import os
@@ -10,6 +10,10 @@ from sklearn.model_selection import GridSearchCV # For optimization
 import yaml
 import pandas as pd
 from sklearn.metrics import classification_report
+from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.pipeline import Pipeline as imblearnPipeline
+from joblib import dump, load
 
 def sort_file_paths(project_name: str):
     # figure out the path of the file we're runnning
@@ -39,9 +43,12 @@ if __name__ == '__main__':
 
     # TODO: Load the data by instantiating the FileDataLoader, handle file doesn't exist.
     data_loader = FileDataLoader('../data/dataset_experimentation.csv')  # Candidate , instantiate your class here
-    df = data_loader.load_data()
+    df = data_loader.load_data(impute_nas = True) #
 
     # TODO: Do the rest of your work here, or in other classes that are called here.
+
+    #name of the experiment run for comparison later
+    experiment_name = 'SMOTETomek'
 
     #load target variable and variables to drop
     with open("util/config.yaml", "r") as config:
@@ -53,7 +60,7 @@ if __name__ == '__main__':
         except yaml.YAMLError as exc:
             print(exc)
 
-    #drop na values TODO: impute these values
+    #drop na values 
     df = df.dropna()
 
     #split df into train and test sets
@@ -70,34 +77,30 @@ if __name__ == '__main__':
         
         #create pipeline to Sequentially apply a list of transforms and a final estimator (model)
         pipe = Model(model_name).get_pipeline()
+        
+        #uncomment to perform grid search to find optimal parameters
+        #logging.info(f'Tuning {model_name} hyper-parameters')
+        #parameters = Model(model_name).get_param_grid()
+        #grid = GridSearchCV(pipe, parameters, cv=3, n_jobs = -1, scoring = 'accuracy', verbose = 2).fit(X_train, y_train)
 
-        #results without parameter optimization - check model performance with cross validation
-        result = cross_val_score(pipe, X_train, y_train,  cv=3)
-        print(model_name , result.mean())
+        #check model performance with cross validation
+        result = cross_val_score(pipe, X_train, y_train,  scoring = 'roc_auc', cv=3)
+
+        #results of the best estimator - check model performance with cross validation
+        logging.info(f'Cross validating {model_name} model')
+        print('')
+        print(f'{model_name} cross val roc_auc score: {round(result.mean(), 2)}\n')
 
         #fit the model to the entire training data
         pipe.fit(X_train, y_train)
 
-        #predict and print print classifications scores
-        y_pred = pipe.predict(X_valid)
-        print(classification_report(y_valid, y_pred))
+        #predict on test set
+        logging.info(f'Training {model_name} model')
 
+        #save classifications reports
+        logging.info(f'Saving {model_name}')
 
-
-        #results.append(result)
-        #model_names_results.append(model_name)
-        
-        #perform grid search to find optimal parameters
-        #parameters = Model(model_name).get_param_grid()
-        #grid = GridSearchCV(pipe, parameters, cv=5, n_jobs = -1).fit(X_train, y_train)
-        #print(model_name + ' opt', grid.best_score_) #Mean cross-validated score of the best_estimator
-        #model_names_results.append(model_name + ' opt')
-        #results.append(result)
-
-    print('')
-    #for model_name, result in zip(model_names, results): print(model_name, result.mean())
-    print('')
-        
+        dump(pipe, f'../interview-test-final/util/trained_models/{model_name}_{experiment_name}.joblib')
 
 
 
