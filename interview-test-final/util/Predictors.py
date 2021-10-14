@@ -58,8 +58,8 @@ class Model(AbstractModel):
         
         #balance class
            
-        over_SMOTE = SMOTE(random_state = 11)
-        over_SMOTETomek = SMOTETomek(random_state=11)
+        #over_SMOTE = SMOTE(random_state = 11)
+        #over_SMOTETomek = SMOTETomek(random_state=11)
         under = RandomUnderSampler(sampling_strategy=0.5)
 
         data_pipeline = ColumnTransformer([
@@ -70,7 +70,7 @@ class Model(AbstractModel):
 
         pipeline = Pipeline([
             ('data_pipeline', data_pipeline),
-            ('over', over_SMOTETomek),
+            #('over', over_SMOTE),
             #('under', under), #Step2 - clean and transform data
             ('clf', self.model) #step3 - classifier
         ])

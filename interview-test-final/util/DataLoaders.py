@@ -39,6 +39,9 @@ class FileDataLoader(AbstractDataLoader):
         logging.info('Loading data using pandas')
         df = pd.read_csv(self.filename)
 
+        #drop duplicates
+        df = df.drop_duplicates()
+
         # TODO: Return your data object here
 
         if impute_nas is not None:

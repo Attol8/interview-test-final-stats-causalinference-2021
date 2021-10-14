@@ -48,7 +48,7 @@ if __name__ == '__main__':
     # TODO: Do the rest of your work here, or in other classes that are called here.
 
     #name of the experiment run for comparison later
-    experiment_name = 'SMOTETomek'
+    experiment_name = 'baseline'
 
     #load target variable and variables to drop
     with open("util/config.yaml", "r") as config:
